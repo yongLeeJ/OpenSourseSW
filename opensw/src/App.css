@@ -1,38 +1,82 @@
+/* App.css */
+/* — App & Title — */
 .App {
+  max-width: 900px;
+  margin: auto;
+}
+.AppTitle {
+  text-align: center;
+  margin: 20px 0;
+  font-size: 1.8rem;
+}
+
+/* — 캘린더 래퍼 — */
+.CalendarContainer {
+  position: relative;
+}
+
+/* — 모달 오버레이 & 컨텐츠 — */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  pointer-events: auto;
+}
+.modalContent {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  background: #fff;
+  padding: 16px;
+  border-radius: 8px;
+  outline: none;
+}
+.modalTitle {
+  margin-bottom: 12px;
+  font-size: 1.2rem;
   text-align: center;
 }
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.modalForm label {
+  display: block;
+  margin-bottom: 8px;
+}
+.modalForm input[type="text"],
+.modalForm input[type="date"] {
+  width: 100%;
+  padding: 6px;
+  margin-top: 4px;
+}
+/* 날짜+시간 입력 너비 조정 */
+.modalForm input[type="datetime-local"] {
+  width: 100%;
+  margin-top: 4px;
+  padding: 6px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.checkboxLabel {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  margin: 8px 0;
+}
+.modalButtons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
 }
 
-.App-link {
-  color: #61dafb;
+/* — 이벤트 렌더링 — */
+.fc-event-content {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.fc-event-time {
+  font-weight: bold;
+  margin-right: 4px;
+}
+.fc-event-done {
+  margin-left: auto;
 }
