@@ -7,22 +7,43 @@ import interactionPlugin from '@fullcalendar/interaction';
 import Modal from 'react-modal';
 import './App.css';
 
+const defaultTags = ['업무', '개인', '공부', '운동'];
+const TAG_COLORS = {
+  업무: '#ff9f89',
+  개인: '#a6d8f1',
+  공부: '#c0e3b9',
+  운동: '#f3c057'
+};
+
+// ISO 문자열 'YYYY-MM-DDTHH:mm:ssZ'을 'MM-DD HH:mm' 형식으로 변환
+function formatDateStr(isoStr) {
+  const dt = new Date(isoStr);
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getDate()).padStart(2, '0');
+  const hh = String(dt.getHours()).padStart(2, '0');
+  const mi = String(dt.getMinutes()).padStart(2, '0');
+  return `${mm}-${dd} ${hh}:${mi}`;
+}
+
 Modal.setAppElement('#root');
 
 function Calendar() {
+  const [tags, setTags] = useState(defaultTags);
+  const [newTagName, setNewTagName] = useState('');
   const [events, setEvents] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     start: '',
     end: '',
+    tag: '',
     completed: false
   });
   const [selectedId, setSelectedId] = useState(null);
 
   // 캘린더에서 영역 선택(날짜+시간)
   const handleDateSelect = ({ startStr, endStr, allDay }) => {
-    setFormData({ title: '', start: startStr, end: endStr, completed: false });
+    setFormData({ title: '', start: startStr, end: endStr, tag: '', completed: false });
     setSelectedId(null);
     setModalOpen(true);
   };
@@ -33,6 +54,7 @@ function Calendar() {
       title: event.title,
       start: event.startStr,
       end: event.endStr,
+      tag: event.extendedProps.tag || '',
       completed: event.extendedProps.completed || false
     });
     setSelectedId(event.id);
@@ -43,11 +65,20 @@ function Calendar() {
     e.preventDefault();
     if (selectedId) {
       setEvents(events.map(ev =>
-        ev.id === selectedId ? { ...ev, ...formData } : ev
+        ev.id === selectedId
+          ? { ...ev, ...formData, color: TAG_COLORS[formData.tag] || ev.color }
+          : ev
       ));
     } else {
       const id = Date.now().toString();
-      setEvents([...events, { id, ...formData }]);
+      setEvents([
+        ...events,
+        {
+          id,
+          ...formData,
+          color: TAG_COLORS[formData.tag] || ''
+        }
+      ]);
     }
     setModalOpen(false);
   };
@@ -105,6 +136,38 @@ function Calendar() {
               required
             />
           </label>
+          <label>
+            태그
+            <select
+              value={formData.tag}
+              onChange={e => setFormData({ ...formData, tag: e.target.value })}
+              required
+            >
+              <option value="">태그 선택</option>
+              {tags.map(tag => (
+                <option key={tag} value={tag}>{tag}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            새 태그 추가
+            <input
+              type="text"
+              value={newTagName}
+              onChange={e => setNewTagName(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (newTagName && !tags.includes(newTagName)) {
+                  setTags([...tags, newTagName]);
+                  setNewTagName('');
+                }
+              }}
+            >
+              추가
+            </button>
+          </label>
           <label className="checkboxLabel">
             <input
               type="checkbox"
@@ -124,15 +187,21 @@ function Calendar() {
 }
 
 function renderEventContent(eventInfo) {
+  const startText = formatDateStr(eventInfo.event.startStr);
+  const endText = formatDateStr(eventInfo.event.endStr);
   return (
-    <div className="fc-event-content">
-      <span className="fc-event-time">
-        {eventInfo.timeText}
-      </span>
+    <div
+      className="fc-event-content"
+      title={
+        `제목: ${eventInfo.event.title}\n` +
+        `기간: ${startText} ~ ${endText}` +
+        (eventInfo.event.extendedProps.tag ? `\n태그: ${eventInfo.event.extendedProps.tag}` : '')
+      }
+    >
       <span className="fc-event-title">
         {eventInfo.event.title}
+        {eventInfo.event.extendedProps.completed && <span className="fc-event-done">✅</span>}
       </span>
-      {eventInfo.event.extendedProps.completed && <span className="fc-event-done">✅</span>}
     </div>
   );
 }
