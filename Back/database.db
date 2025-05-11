@@ -1,0 +1,19 @@
+import sqlite3
+
+DATABASE = 'database.db'
+
+def get_db():
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row  # 결과를 딕셔너리 형태로 받을 수 있도록 설정
+    return conn
+
+def init_db():
+    db = get_db()
+    with open('schema.sql', 'r') as f:
+        db.cursor().executescript(f.read())
+    db.commit()
+    db.close()
+
+if __name__ == '__main__':
+    init_db()
+ //태그 테이블 생성

@@ -1,3 +1,4 @@
+/*태그 테이블 생성*/
 import sqlite3
 from flask import Flask, g, jsonify
 
@@ -5,13 +6,18 @@ DATABASE = 'database.db'
 
 def get_db():
     conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
+    conn.row_factory = sqlite3.Row  # 결과를 딕셔너리 형태로 받을 수 있도록 설정
     return conn
 
 def init_db():
     db = get_db()
-    with open('schema.sql', 'r') as f:
-        db.cursor().executescript(f.read())
+    try:
+        with open('schema.sql', 'r', encoding='utf-8') as f:
+            db.cursor().executescript(f.read())
+    except UnicodeDecodeError:
+        print("UTF-8 인코딩 실패. CP949로 재시도합니다.")
+        with open('schema.sql', 'r', encoding='cp949') as f:
+            db.cursor().executescript(f.read())
     db.commit()
     db.close()
 
@@ -42,5 +48,5 @@ def get_tags():
     return jsonify([dict(row) for row in tags])
 
 if __name__ == '__main__':
-    init_db()
-    app.run(debug=True)
+    #init_db() # 데이터베이스 초기화
+    app.run(debug=True) # Flask 개발 서버 실행 (이 부분을 if __name__ == '__main__': 안으로 옮겼습니다.)
