@@ -1,0 +1,13 @@
+.modalContent {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 350px;
+  background: #ffffff;       /* 어두운 배경 */
+  color: #000000;            /* 글씨 색상 */
+  padding: 24px;
+  border-radius: 24px;    /* 둥근 정도 더 크게 */
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35); /* 그림자 진하게 */
+  outline: none;
+}
