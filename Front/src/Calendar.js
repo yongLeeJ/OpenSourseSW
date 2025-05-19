@@ -1,7 +1,7 @@
 /* eslint-disable */
 
-import './App.css';
 import React, { useState } from 'react';
+import './App.css';
 import './Calendar.css';
 
 import FullCalendar from '@fullcalendar/react';
@@ -10,16 +10,29 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import Modal from 'react-modal';
 
-// 기본 태그 및 색상 정의
 const defaultTags = ['업무', '개인', '공부', '운동'];
 const TAG_COLORS = {
   업무: '#ff9f89',
   개인: '#a6d8f1',
   공부: '#c0e3b9',
-  운동: '#f3c057',
+  운동: '#f3c057'
 };
 
-// 날짜 포맷 변환 함수 (MM-DD HH:mm)
+Modal.setAppElement('#root');
+
+// 한글 시간 변환 함수 (예: "오전 9:30")
+function getKoreanTime(dateStr) {
+  const date = new Date(dateStr);
+  let h = date.getHours();
+  const m = date.getMinutes();
+  const isAm = h < 12;
+  let period = isAm ? '오전' : '오후';
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${period} ${h}:${m.toString().padStart(2, '0')}`;
+}
+
+// ISO 문자열 'YYYY-MM-DDTHH:mm:ssZ'을 'MM-DD HH:mm' 형식으로 변환
 function formatDateStr(isoStr) {
   const dt = new Date(isoStr);
   const mm = String(dt.getMonth() + 1).padStart(2, '0');
@@ -29,10 +42,7 @@ function formatDateStr(isoStr) {
   return `${mm}-${dd} ${hh}:${mi}`;
 }
 
-Modal.setAppElement('#root');
-
 function Calendar() {
-  // state 묶어서 그룹화
   const [tags, setTags] = useState(defaultTags);
   const [newTagName, setNewTagName] = useState('');
   const [events, setEvents] = useState([]);
@@ -42,7 +52,7 @@ function Calendar() {
     start: '',
     end: '',
     tag: '',
-    completed: false,
+    completed: false
   });
   const [selectedId, setSelectedId] = useState(null);
 
@@ -53,7 +63,7 @@ function Calendar() {
       start: startStr,
       end: endStr,
       tag: '',
-      completed: false,
+      completed: false
     });
     setSelectedId(null);
     setModalOpen(true);
@@ -66,7 +76,7 @@ function Calendar() {
       start: event.startStr,
       end: event.endStr,
       tag: event.extendedProps.tag || '',
-      completed: event.extendedProps.completed || false,
+      completed: event.extendedProps.completed || false
     });
     setSelectedId(event.id);
     setModalOpen(true);
@@ -88,8 +98,8 @@ function Calendar() {
         {
           id,
           ...formData,
-          color: TAG_COLORS[formData.tag] || '',
-        },
+          color: TAG_COLORS[formData.tag] || ''
+        }
       ]);
     }
     setModalOpen(false);
@@ -97,20 +107,34 @@ function Calendar() {
 
   // 이벤트 렌더링 커스텀
   function renderEventContent(eventInfo) {
-    const startText = formatDateStr(eventInfo.event.startStr);
-    const endText = formatDateStr(eventInfo.event.endStr);
+    const start = new Date(eventInfo.event.startStr);
+    const end = new Date(eventInfo.event.endStr);
+
+    // 1일 일정(동일날짜 시작~종료)인 경우 한글 시간+제목
+    const isSameDay = (
+      start.getFullYear() === end.getFullYear() &&
+      start.getMonth() === end.getMonth() &&
+      start.getDate() === end.getDate()
+    );
+
     return (
-      <div
-        className="fc-event-content"
-        title={
-          `제목: ${eventInfo.event.title}\n` +
-          `기간: ${startText} ~ ${endText}` +
-          (eventInfo.event.extendedProps.tag ? `\n태그: ${eventInfo.event.extendedProps.tag}` : '')
-        }
-      >
+      <div className="fc-event-content">
+        <span
+          className="fc-event-dot"
+          style={{
+            backgroundColor: eventInfo.event.backgroundColor || eventInfo.event.color || '#999'
+          }}
+        ></span>
+        {isSameDay && (
+          <span className="fc-event-time-ko">{
+            getKoreanTime(eventInfo.event.startStr)}
+          </span>
+        )}
         <span className="fc-event-title">
           {eventInfo.event.title}
-          {eventInfo.event.extendedProps.completed && <span className="fc-event-done">✅</span>}
+          {eventInfo.event.extendedProps.completed && (
+            <span className="fc-event-done">✅</span>
+          )}
         </span>
       </div>
     );
@@ -130,16 +154,17 @@ function Calendar() {
         eventClick={handleEventClick}
         eventContent={renderEventContent}
       />
-      <Modal // 일정 추가 모달
+      {/* 일정 추가/수정 모달 */}
+      <Modal
         isOpen={modalOpen}
         onRequestClose={() => setModalOpen(false)}
         className="modalContent"
         overlayClassName="modalOverlay"
         shouldCloseOnOverlayClick
       >
-        <h1 className="modalTitle">
+        <h2 className="modalTitle">
           {selectedId ? '일정 정보 / 수정' : '새 일정 추가'}
-        </h1>
+        </h2>
         <form onSubmit={handleSubmit} className="modalForm">
           <label>
             제목
