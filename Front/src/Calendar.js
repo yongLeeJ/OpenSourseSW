@@ -119,17 +119,17 @@ function Calendar() {
 
     return (
       <div className="fc-event-content">
-        <span
-          className="fc-event-dot"
-          style={{
-            backgroundColor: eventInfo.event.backgroundColor || eventInfo.event.color || '#999'
+        {isSameDay && (
+          <span
+            className="fc-event-dot"
+            style={{
+              backgroundColor: eventInfo.event.backgroundColor || eventInfo.event.color || '#999'
           }}
         ></span>
-        {isSameDay && (
-          <span className="fc-event-time-ko">{
-            getKoreanTime(eventInfo.event.startStr)}
-          </span>
         )}
+        <span className="fc-event-time-ko">{
+          getKoreanTime(eventInfo.event.startStr)}
+        </span>
         <span className="fc-event-title">
           {eventInfo.event.title}
           {eventInfo.event.extendedProps.completed && (

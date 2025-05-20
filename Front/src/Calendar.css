@@ -18,7 +18,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  margin-right: 4px;
+  margin-right: 2px;
   vertical-align: middle;
 }
 
@@ -27,6 +27,7 @@
   font-size: 0.88em;
   color: #666;
   font-weight: 400;
+  margin-left: 2px;
 }
 
 /* 일정 제목 - 기존보다 살짝 강조 */
