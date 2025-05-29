@@ -26,7 +26,7 @@ function getKoreanTime(dateStr) {
   let h = date.getHours();
   const m = date.getMinutes();
   const isAm = h < 12;
-  let period = isAm ? '오전' : '오후';
+  let period = isAm ? 'AM' : 'PM';
   h = h % 12;
   if (h === 0) h = 12;
   return `${period} ${h}:${m.toString().padStart(2, '0')}`;
