@@ -1,69 +1,27 @@
-/*
-/*태그 테이블 생성*/
-import sqlite3
-from flask import Flask, g, jsonify
-
-DATABASE = 'database.db'
-
-def get_db():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row  # 결과를 딕셔너리 형태로 받을 수 있도록 설정
-    return conn
-
-def init_db():
-    db = get_db()
-    try:
-        with open('schema.sql', 'r', encoding='utf-8') as f:
-            db.cursor().executescript(f.read())
-    except UnicodeDecodeError:
-        print("UTF-8 인코딩 실패. CP949로 재시도합니다.")
-        with open('schema.sql', 'r', encoding='cp949') as f:
-            db.cursor().executescript(f.read())
-    db.commit()
-    db.close()
-
-app = Flask(__name__)
-
-def get_db():
-    db = getattr(g, '_database', None)
-    if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
-        db.row_factory = sqlite3.Row
-    return db
-
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
-
-def query_db(query, args=(), one=False):
-    cur = get_db().execute(query, args)
-    rv = cur.fetchall()
-    cur.close()
-    return (rv[0] if rv else None) if one else rv
-
-@app.route('/tags/list', methods=['GET'])
-def get_tags():
-    tags = query_db('SELECT id, name FROM tags')
-    return jsonify([dict(row) for row in tags])
-
-if __name__ == '__main__':
-    #init_db() # 데이터베이스 초기화
-    app.run(debug=True) # Flask 개발 서버 실행 (이 부분을 if __name__ == '__main__': 안으로 옮겼습니다.)
-*/
-
-/* 태그 테이블 생성 */
+--태그 테이블
 CREATE TABLE IF NOT EXISTS tags (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL
+    name TEXT NOT NULL UNIQUE
 );
 
-/* 이벤트 테이블 생성 */
+-- 이벤트 테이블
 CREATE TABLE IF NOT EXISTS events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     description TEXT,
-    start_date TEXT NOT NULL,
-    end_date TEXT
+    start_date TEXT NOT NULL, -- YYYY-MM-DD 형식 권장
+    end_date TEXT,            -- YYYY-MM-DD 형식 권장 (마감일)
+    priority INTEGER DEFAULT 0, -- 우선순위 (0-낮음, 1-보통, 2-높음)
+    recurrence TEXT,          -- 반복 패턴 ('daily', 'weekly', 'monthly')
+    parent_event_id INTEGER,  -- 반복 이벤트의 원본 이벤트 ID (선택 사항, 추후 확장 시 사용)
+    FOREIGN KEY (parent_event_id) REFERENCES events (id) ON DELETE SET NULL
+);
+
+-- 이벤트와 태그 간의 다대다 관계를 위한 중간 테이블
+CREATE TABLE IF NOT EXISTS event_tags (
+    event_id INTEGER NOT NULL,
+    tag_id INTEGER NOT NULL,
+    FOREIGN KEY (event_id) REFERENCES events (id) ON DELETE CASCADE, -- 이벤트 삭제 시 연결된 태그도 삭제
+    FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE,     -- 태그 삭제 시 연결된 이벤트-태그 관계도 삭제
+    PRIMARY KEY (event_id, tag_id) -- 이벤트와 태그 조합은 유니크해야 함
 );
