@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS events (
     priority INTEGER DEFAULT 0, -- 우선순위 (0-낮음, 1-보통, 2-높음)
     recurrence TEXT,          -- 반복 패턴 ('daily', 'weekly', 'monthly')
     parent_event_id INTEGER,  -- 반복 이벤트의 원본 이벤트 ID (선택 사항, 추후 확장 시 사용)
+    completed INTEGER DEFAULT 0, -- ★ 이벤트 완료 여부 (0: 미완료, 1: 완료)
     FOREIGN KEY (parent_event_id) REFERENCES events (id) ON DELETE SET NULL
 );
 

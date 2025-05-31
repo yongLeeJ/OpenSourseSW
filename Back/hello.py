@@ -301,6 +301,32 @@ def delete_event(id):
     finally:
         cursor.close()
 
+# 이벤트 완료 상태 토글 API
+@app.route('/events/<int:id>/completed', methods=['PATCH'])
+def toggle_event_completed(id):
+    db = get_db()
+    try:
+        cursor = db.cursor()
+        # 현재 완료 상태 확인
+        cursor.execute("SELECT completed FROM events WHERE id = ?", (id,))
+        row = cursor.fetchone()
+        if row is None:
+            return jsonify({'error': '해당 ID의 이벤트를 찾을 수 없습니다.'}), 404
+
+        # 현재 완료값 반전(토글)
+        current_completed = row['completed'] if isinstance(row, sqlite3.Row) else row[0]
+        new_completed = 0 if current_completed else 1
+
+        # 업데이트
+        cursor.execute("UPDATE events SET completed = ? WHERE id = ?", (new_completed, id))
+        db.commit()
+        return jsonify({'id': id, 'completed': new_completed}), 200
+    except sqlite3.Error as e:
+        db.rollback()
+        return jsonify({'error': f'이벤트 완료 상태 토글에 실패했습니다: {str(e)}'}), 500
+    finally:
+        cursor.close()
+
 
 # 애플리케이션 실행
 if __name__ == '__main__':
