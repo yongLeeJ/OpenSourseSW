@@ -1,263 +1,141 @@
 /* eslint-disable */
+import React, { useEffect, useState } from 'react'
+import FullCalendar from '@fullcalendar/react'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import Modal from 'react-modal'
+import axios from 'axios'
+import './Calendar.css'
 
-import React, { useState } from 'react';
-import './App.css';
-import './Calendar.css';
+Modal.setAppElement('#root')
 
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
-import Modal from 'react-modal';
-
-const defaultTags = ['업무', '개인', '공부', '운동'];
-const TAG_COLORS = {
-  업무: '#ff9f89',
-  개인: '#a6d8f1',
-  공부: '#c0e3b9',
-  운동: '#f3c057'
-};
-
-Modal.setAppElement('#root');
-
-// 한글 시간 변환 함수 (예: "오전 9:30")
-function getKoreanTime(dateStr) {
-  const date = new Date(dateStr);
-  let h = date.getHours();
-  const m = date.getMinutes();
-  const isAm = h < 12;
-  let period = isAm ? 'AM' : 'PM';
-  h = h % 12;
-  if (h === 0) h = 12;
-  return `${period} ${h}:${m.toString().padStart(2, '0')}`;
-}
-
-// ISO 문자열 'YYYY-MM-DDTHH:mm:ssZ'을 'MM-DD HH:mm' 형식으로 변환
-function formatDateStr(isoStr) {
-  const dt = new Date(isoStr);
-  const mm = String(dt.getMonth() + 1).padStart(2, '0');
-  const dd = String(dt.getDate()).padStart(2, '0');
-  const hh = String(dt.getHours()).padStart(2, '0');
-  const mi = String(dt.getMinutes()).padStart(2, '0');
-  return `${mm}-${dd} ${hh}:${mi}`;
-}
+const API_BASE = 'http://localhost:5000'
 
 function Calendar() {
-  const [tags, setTags] = useState(defaultTags);
-  const [newTagName, setNewTagName] = useState('');
-  const [events, setEvents] = useState([]);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    start: '',
-    end: '',
-    tag: '',
-    completed: false
-  });
-  const [selectedId, setSelectedId] = useState(null);
+  const [tags, setTags] = useState([])
+  const [tagColors, setTagColors] = useState({})
+  const [events, setEvents] = useState([])
+  const [modalOpen, setModalOpen] = useState(false)
+  const [formData, setFormData] = useState({ title: '', start: '', end: '', tag_id: null })
+  const [selectedId, setSelectedId] = useState(null)
 
-  // 날짜/시간 선택시 모달 오픈
+  useEffect(() => {
+    axios.get(`${API_BASE}/tags/list`).then(res => {
+      setTags(res.data)
+      const colors = {}
+      res.data.forEach(tag => { colors[tag.id] = tag.color || '#3788d8' })
+      setTagColors(colors)
+      // *** 여기서 colors를 바로 fetchEvents에 넘긴다! ***
+      fetchEvents(colors)
+    })
+  }, [])
+
+const fetchEvents = (colors) => {
+  axios.get(`${API_BASE}/events/list`).then(res => {
+    setEvents(res.data.map(ev => ({
+      id: ev.id,
+      title: ev.title,
+      start: ev.start_date,
+      end: ev.end_date,
+      tag_id: ev.tags[0]?.id || null,
+      color: (colors && colors[ev.tags[0]?.id]) || '#3788d8',
+      completed: !!ev.completed,
+    })))
+  })
+}
+
   const handleDateSelect = ({ startStr, endStr }) => {
-    setFormData({
-      title: '',
-      start: startStr,
-      end: endStr,
-      tag: '',
-      completed: false
-    });
-    setSelectedId(null);
-    setModalOpen(true);
-  };
+    setFormData({ title: '', start: startStr.slice(0,16), end: endStr.slice(0,16), tag_id: tags[0]?.id || null })
+    setSelectedId(null)
+    setModalOpen(true)
+  }
 
-  // 일정 클릭시 정보/수정 모달
   const handleEventClick = ({ event }) => {
     setFormData({
       title: event.title,
-      start: event.startStr,
-      end: event.endStr,
-      tag: event.extendedProps.tag || '',
-      completed: event.extendedProps.completed || false
-    });
-    setSelectedId(event.id);
-    setModalOpen(true);
-  };
-
-  // 일정 저장 (신규/수정)
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (selectedId) {
-      setEvents(events.map(ev =>
-        ev.id === selectedId
-          ? { ...ev, ...formData, color: TAG_COLORS[formData.tag] || ev.color }
-          : ev
-      ));
-    } else {
-      const id = Date.now().toString();
-      setEvents([
-        ...events,
-        {
-          id,
-          ...formData,
-          color: TAG_COLORS[formData.tag] || ''
-        }
-      ]);
-    }
-    setModalOpen(false);
-  };
-
-  // 이벤트 렌더링 커스텀
-  function renderEventContent(eventInfo) {
-    const start = new Date(eventInfo.event.startStr);
-    const end = new Date(eventInfo.event.endStr);
-
-    // 1일 일정(동일날짜 시작~종료)인 경우 한글 시간+제목
-    const isSameDay = (
-      start.getFullYear() === end.getFullYear() &&
-      start.getMonth() === end.getMonth() &&
-      start.getDate() === end.getDate()
-    );
-
-    return (
-      <div className="fc-event-content">
-        {isSameDay && (
-          <span
-            className="fc-event-dot"
-            style={{
-              backgroundColor: eventInfo.event.backgroundColor || eventInfo.event.color || '#999'
-          }}
-        ></span>
-        )}
-        <span className="fc-event-time-ko">{
-          getKoreanTime(eventInfo.event.startStr)}
-        </span>
-        <span className="fc-event-title">
-          {eventInfo.event.title}
-          {eventInfo.event.extendedProps.completed && (
-            <span className="fc-event-done">✅</span>
-          )}
-        </span>
-      </div>
-    );
+      start: event.startStr.slice(0,16),
+      end: event.endStr.slice(0,16),
+      tag_id: event.extendedProps.tag_id
+    })
+    setSelectedId(event.id)
+    setModalOpen(true)
   }
+
+  const handleSubmit = e => {
+    e.preventDefault()
+    axios.post(`${API_BASE}/events/new`, {
+      title: formData.title,
+      start_date: formData.start,
+      end_date: formData.end,
+      tag_ids: [formData.tag_id]
+    }).then(() => {
+      fetchEvents()
+      setModalOpen(false)
+    }).catch(() => alert('이벤트 추가 실패'))
+  }
+
+  const renderEventContent = eventInfo => (
+    <div className="fc-event-content">
+      {/* <span className="fc-event-time-ko">{new Date(eventInfo.event.startStr).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</span> */}
+      <span className="fc-event-title">
+        {eventInfo.event.title}
+        {eventInfo.event.extendedProps.completed ? ' ✅' : ''}
+      </span>
+    </div>
+  )
 
   return (
     <div className="CalendarContainer">
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
-        selectable
-        editable
-        selectMirror
-        slotDuration="00:30:00"
+        selectable editable selectMirror
         events={events}
         select={handleDateSelect}
         eventClick={handleEventClick}
         eventContent={renderEventContent}
       />
-      {/* 일정 추가/수정 모달 */}
       <Modal
         isOpen={modalOpen}
         onRequestClose={() => setModalOpen(false)}
         className="modalContent"
         overlayClassName="modalOverlay"
-        shouldCloseOnOverlayClick
       >
-        <h2 className="modalTitle">
-          {selectedId ? '일정 정보 / 수정' : '새 일정 추가'}
-        </h2>
-        <form onSubmit={handleSubmit} className="modalForm">
+        <h2 className="modalTitle">{selectedId ? '일정 수정' : '새 일정 추가'}</h2>
+        <form onSubmit={handleSubmit}>
           <label>
             제목
-            <input
-              type="text"
-              value={formData.title}
-              onChange={e => setFormData({ ...formData, title: e.target.value })}
-              required
-              maxLength={50}
-              className="modalInput"
-              placeholder="일정 제목"
-            />
+            <input type="text" className="modalInput" value={formData.title} required maxLength={50}
+              onChange={e => setFormData({ ...formData, title: e.target.value })} />
           </label>
           <label>
             시작
-            <input
-              type="datetime-local"
-              value={formData.start.slice(0, 16)}
-              onChange={e => setFormData({ ...formData, start: e.target.value })}
-              required
-              className="modalInput"
-              id="startInput"
-            />
+            <input type="datetime-local" className="modalInput" value={formData.start} required
+              onChange={e => setFormData({ ...formData, start: e.target.value })} />
           </label>
           <label>
             마감
-            <input
-              type="datetime-local"
-              value={formData.end.slice(0, 16)}
-              onChange={e => setFormData({ ...formData, end: e.target.value })}
-              required
-              className="modalInput"
-              id="endInput"
-            />
+            <input type="datetime-local" className="modalInput" value={formData.end} required
+              onChange={e => setFormData({ ...formData, end: e.target.value })} />
           </label>
           <label>
             태그
-            <select
-              value={formData.tag}
-              onChange={e => setFormData({ ...formData, tag: e.target.value })}
-              required
-              className="modalSelect"
-              id="tagSelect"
-            >
-              <option value="">태그 선택</option>
+            <select className="modalSelect" value={formData.tag_id}
+              onChange={e => setFormData({ ...formData, tag_id: Number(e.target.value) })}>
               {tags.map(tag => (
-                <option key={tag} value={tag}>{tag}</option>
+                <option key={tag.id} value={tag.id}>{tag.name}</option>
               ))}
             </select>
           </label>
-          <label>
-            새 태그 추가
-            <input
-              type="text"
-              value={newTagName}
-              onChange={e => setNewTagName(e.target.value)}
-              className="modalInput"
-              placeholder="새 태그"
-              maxLength={10}
-              id="newTagInput"
-            />
-            <button
-              type="button"
-              className="modalButton"
-              id="addTagBtn"
-              onClick={() => {
-                if (newTagName && !tags.includes(newTagName)) {
-                  setTags([...tags, newTagName]);
-                  setNewTagName('');
-                }
-              }}
-            >
-              추가
-            </button>
-          </label>
-          {/* <label className="checkboxLabel">
-            <input
-              type="checkbox"
-              checked={formData.completed}
-              onChange={e => setFormData({ ...formData, completed: e.target.checked })}
-              className="modalCheckbox"
-              id="completedCheckbox"
-            />
-            완료됨
-          </label> */}
           <div className="modalButtons">
-            <button type="submit" className="modalButton">{selectedId ? '저장' : '추가'}</button>
+            <button type="submit" className="modalButton">저장</button>
             <button type="button" className="modalButton" onClick={() => setModalOpen(false)}>취소</button>
           </div>
         </form>
       </Modal>
     </div>
-  );
+  )
 }
 
-export default Calendar;
+export default Calendar

@@ -1,7 +1,8 @@
 --태그 테이블
 CREATE TABLE IF NOT EXISTS tags (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE
+    name TEXT NOT NULL UNIQUE,
+    color TEXT
 );
 
 -- 이벤트 테이블

@@ -1,9 +1,11 @@
 import sqlite3
+from flask_cors import CORS
 from flask import Flask, g, jsonify, request
 from datetime import datetime, timedelta
 
 DATABASE = 'database.db' # 데이터 베이스 파일 경로
-app = Flask(__name__) # Flask 애플리케이션 초기화
+app = Flask(__name__)
+CORS(app) # Flask 애플리케이션 초기화
 
 ## 데이터 베이스 연결 얻는 함수 - 요청당 하나의 데이터베이스 연결 유지
 def get_db():
@@ -45,7 +47,7 @@ def init_db():
 ## 전체 태그 조회 API
 @app.route('/tags/list', methods=['GET'])
 def get_tags():
-    tags = query_db('SELECT id, name FROM tags')
+    tags = query_db('SELECT id, name, color FROM tags')
     # 조회된 태그 목록을 JSON 형식으로 반환
     return jsonify([dict(row) for row in tags])
 
@@ -83,7 +85,7 @@ def get_events():
     due_soon_days = request.args.get('due_soon_days', type=int)
 
     # 기본 쿼리문: 우선순위, 반복 정보 컬럼 포함
-    query = 'SELECT id, title, description, start_date, end_date, priority, recurrence FROM events'
+    query = 'SELECT id, title, description, start_date, end_date, priority, recurrence, completed FROM events'
     where_clauses = []
     order_clauses = []
     args = []

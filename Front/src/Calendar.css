@@ -32,6 +32,7 @@
 
 /* 일정 제목 - 기존보다 살짝 강조 */
 .fc-event-title {
+  margin-left: 3px;
   font-size: 1em;
   font-weight: 600;
 }
