@@ -97,7 +97,7 @@ function Calendar({ onEventsChanged, eventChanged }) {
     e.preventDefault()
     if (selectedId && !isReadOnly) {
       // 수정
-      axios.put(`${API_BASE}/events/${selectedId}/edit`, {
+      axios.put(`${API_BASE}/events/${selectedId}`, {
         title: formData.title,
         start_date: formData.start,
         end_date: formData.end,
@@ -126,7 +126,7 @@ function Calendar({ onEventsChanged, eventChanged }) {
   // 일정 삭제
   const handleDelete = () => {
     if (selectedId) {
-      axios.delete(`${API_BASE}/events/${selectedId}/delete`).then(() => {
+      axios.delete(`${API_BASE}/events/${selectedId}`).then(() => {
         setModalOpen(false)
         if (onEventsChanged) onEventsChanged()
       })
