@@ -5,17 +5,17 @@
 React(프론트엔드)와 Flask(백엔드), SQLite(로컬 DB)를 통해
 FullCalendar를 기반으로 작성하였습니다.
 
-\n\n
+
 ## 필요 환경 세팅
-### 1. 백엔드 세팅 (윈도우 환경)\n
+### 1. 백엔드 세팅 (윈도우 환경)
 
 1. 깃 클론 및 경로 지정
 ``` git clone https://github.com/yongLeeJ/OpenSourseSW.git ```
 ``` cd /OpenSourseSW/BackEnd ```
-\n
+
 2. Flask-CORS 설치
 ``` pip install flask-cors ```
-\n
+
 ### 2. 프론트엔드 세팅 (윈도우 환경)
 
 1. 경로 지정
@@ -25,24 +25,24 @@ FullCalendar를 기반으로 작성하였습니다.
 https://nodejs.org/ - LTS 버전 설치
 
 3. 권한 설정 (권한 문제 시)
-관리자 권한 PowerShell 에서 아래 명령어 작성
+* 관리자 권한 PowerShell 에서 아래 명령어 작성
 ``` Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned ```
 
 4. 필요 nodemodule 설치
-``` cd /OpenSourseSW/FrontEnd/src ``` 에서\n
+``` cd /OpenSourseSW/FrontEnd/src ``` 에서
 ``` npm install ```
 
-\n\n
+
 ## 서버 실행
 
 * 기본적으로 백엔드는 localhost:5000, 프론트는 localhost:3000에서 실행됨
 
 ### 1. 백엔드 서버 실행
-``` cd /OpenSourseSW/BackEnd ``` 에서\n
+``` cd /OpenSourseSW/BackEnd ``` 에서
 ``` python hello.py ``` 
 
 ### 2. 프론트엔드 실행
-``` cd /OpenSourseSW/FrontEnd/src ``` 에서\n
+``` cd /OpenSourseSW/FrontEnd/src ``` 에서
 ``` npm start ```
 
 
