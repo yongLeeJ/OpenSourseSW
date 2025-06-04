@@ -64,4 +64,19 @@ https://nodejs.org/ - LTS 버전 설치
 
 8. 일정 정보 상세 모달/수정/삭제 드롭다운
 
+## 주요 컴포넌트
 
+### 1. 이번주까지 해야 할 투두리스트
+![alt text](image.png)
+
+### 2. 다음주까지 해야 할 투두리스트
+![alt text](image-1.png)
+
+### 3. 이번달 투두리스트 달성율
+![alt text](image-2.png)
+
+### 4. 시각화 캘린더
+![alt text](image-3.png)
+
+### 5. 전체 화면
+![alt text](image-4.png)
